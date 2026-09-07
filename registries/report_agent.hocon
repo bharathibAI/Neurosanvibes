@@ -1,0 +1,420 @@
+# Copyright © 2025-2026 Cognizant Technology Solutions Corp, www.cognizant.com.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# END COPYRIGHT
+
+# Report Generation Agent network built with the neuro-san framework.
+#
+# Implements the following architecture:
+#           |
+#   JSON schema input  + Query             (aliases, real names, explanations)
+#           |
+#   Alias context builder           (schema_alias_tool: strips real names,
+#           |                        hands the LLM aliases + explanations only)
+#   SQL generator agent  <--------.  (drafts SQL using ALIASES only)
+#           |                     |
+#   SQL validator agent  --------'  (cross-checked by LLM B; loops back to
+#           |                        generator on failure; max 3 retries)
+#   Security and compliance agent   (checks aliased query for risk)
+#           |
+#   Alias mapping (code, not LLM)   (sqlite_query_tool: deterministic sqlglot
+#           |                        rewrite of aliases back to real names)
+#   MCP server [SIMULATED]          (sqlite_query_tool acts as a CodedTool
+#           |                        stand-in; in production this step would
+#           |                        call a real MCP server exposing SQLite)
+#   SQLite database                 (executes query, returns rows)
+#           |
+#   Xlsx writer step (XlsxWriterTool)  (formats rows into workbook)
+#           |
+#   Report Generated   #                                       count to the user via a plain-language
+#                                       message; no live ITIL API integration —
+#                                       ITIL ticket closure is manual/external)
+#
+# Alias mapping:
+# The real database/table/column names are never shown to the LLM. Instead,
+# BH_report_agent/data/schema_aliases.json defines an alias + human-readable
+# explanation for each module, table, and column. schema_alias_tool
+# hands that alias view to sql_generator_agent, which composes SQL using
+# ALIASES only. sqlite_query_tool then performs a DETERMINISTIC, code-only
+# (not LLM) rewrite of the alias-based SQL back to the real names using a
+# sqlglot AST pass (via coded_tools/schema_alias_map.py) before executing
+# it against the actual SQLite database.
+#
+# MCP server note:
+# sqlite_query_tool.py is a CodedTool that stands in for an MCP server. It
+# handles alias translation, SELECT-only validation, and direct SQLite
+# execution locally. To connect a real MCP server in future, replace this
+# CodedTool with an MCP client call while keeping the alias-translation step.
+#
+# ITIL integration note:
+# The report_orchestrator notifies the user with the report file path and row
+# count so the ITIL ticket can be closed, but does NOT call any ITIL/ITSM API.
+# Actual ticket closure requires a separate integration (e.g. a ServiceNow
+# CodedTool) to be added to the pipeline.
+#
+# Schema reference:
+# https://github.com/cognizant-ai-lab/neuro-san/blob/main/docs/agent_hocon_reference.md
+
+{
+    "llm_config": {
+        "model_name": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+        "class": "anthropic-bedrock",
+        "region_name": "us-west-2",
+        "aws_access_key_id": "YOUR_AWS_ACCESS_KEY_ID",
+        "aws_secret_access_key": "YOUR_AWS_SECRET_ACCESS_KEY",
+        "aws_session_token": "YOUR_AWS_SESSION_TOKEN_IF_USING_STS"
+    },
+
+    "metadata": {
+        "description": "Report generation agent network for ITIL service requests: drafts and validates SQL, enforces security/compliance, queries a SQLite database via an MCP-style tool, and formats the results into an Xlsx report.",
+        "tags": ["report-generation", "sql", "itil", "bh_report_agent"],
+        "sample_queries": [
+            "Generate a report of all open incidents assigned to the network team in the last 30 days.",
+            "Pull a list of employees in the Finance department along with their email addresses."
+        ]
+    },
+
+    "tools": [
+        # Front-man agent: receives the ITIL adhoc service request (as a JSON
+        # schema / natural-language description of the desired report) and
+        # orchestrates the rest of the pipeline.
+        {
+            "name": "report_orchestrator",
+
+            "function": {
+                "description": """
+I generate data reports in response to ITIL adhoc service requests.
+Describe the report you need (e.g. what data, filters, and date ranges),
+and optionally provide a JSON schema describing the expected input fields.
+I will draft and validate the SQL, check security/compliance, run the query,
+and deliver an Xlsx report.
+""",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "request": {
+                            "type": "string",
+                            "description": "Natural-language or JSON-schema description of the ITIL adhoc service request / report needed."
+                        }
+                    },
+                    "required": ["request"]
+                }
+            },
+
+            "instructions": """
+You are the front-man agent for a report-generation pipeline that responds to
+ITIL adhoc service requests.
+
+Given the user's request (which may include a JSON schema describing the
+expected input fields):
+
+1. Call schema_alias_tool (the "alias context builder") to load the
+   available module/table/column ALIASES and their metadata. This strips all
+   real names so the LLM only ever sees aliases. Always pass the user's
+   request text as the "user_query" argument so the tool returns only the
+   tables relevant to that request (it falls back to the full schema when
+   no tables match). Do this once at the start (and again if
+   sql_generator_agent indicates it needs the schema re-sent).
+2. Call sql_generator_agent with the request and the alias schema view from
+   step 1, asking it to draft a read-only SQL SELECT statement expressed
+   ENTIRELY in terms of the provided aliases (never real table/column names,
+   which you don't have access to anyway).
+3. Take the SQL produced and call sql_validator_agent, passing along both the
+   SQL and the alias schema view, to have it cross-checked.
+   If sql_validator_agent reports the SQL is invalid or unsafe, send its
+   feedback back to sql_generator_agent to refine the SQL, and repeat this
+   validation loop (steps 2-3) until the SQL is approved. Do not loop more
+   than 3 times; if still not approved, explain the problem to the user
+   instead of proceeding.
+4. Once validated, call security_and_compliance_agent with the approved
+   alias-based SQL to check access rights and injection risk. If it flags a
+   problem, stop and report the issue to the user rather than executing the
+   query.
+5. Once cleared, call sqlite_query_tool with the approved alias-based SQL
+   (unchanged - do NOT translate the aliases yourself). The tool performs a
+   deterministic, code-only (not LLM) sqlglot rewrite of the aliases back to
+   the real column/table names and executes it against the database. If
+   the tool returns an "error" key, explain the problem clearly to the user
+   and stop.
+6. Call xlsx_writer_tool with the returned columns and rows to format them
+   into an Xlsx workbook. If it returns an "error" key, explain the problem
+   to the user and stop.
+7. Report back to the user with the file path of the generated report and a
+   short summary (e.g. row count), indicating that the ITIL ticket can be
+   closed.
+
+Always be transparent about any step that failed and why, so the user (or the
+ITIL ticket) can be updated accordingly.
+""",
+            "tools": [
+                "schema_alias_tool",
+                "sql_generator_agent",
+                "sql_validator_agent",
+                "security_and_compliance_agent",
+                "sqlite_query_tool",
+                "xlsx_writer_tool"
+            ]
+        },
+
+        # Down-chain CodedTool: loads the JSON schema-alias definition and
+        # returns an alias + explanation view of the database/tables/fields,
+        # so downstream agents compose SQL using aliases only.
+        {
+            "name": "schema_alias_tool",
+            "function": {
+                "description": "Loads the module/table/column alias definitions and their metadata, for composing SQL using aliases only (never real names). Pass the user's natural-language request as user_query so only relevant tables are returned.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "schema_path": {
+                            "type": "string",
+                            "description": "Optional absolute path to the schema-alias JSON file. Omit this parameter to use the built-in default."
+                        },
+                        "user_query": {
+                            "type": "string",
+                            "description": "The user's natural-language report request. When provided, only tables relevant to this query are included in the returned schema view (plus FK-referenced tables needed for JOINs). Omit to load the full schema."
+                        }
+                    },
+                    "required": []
+                }
+            },
+            "class": "schema_alias_tool.SchemaAliasTool"
+        },
+
+        # SQL generator agent: drafts and refines SQL based on the request
+        # and any validator feedback.
+        {
+            "name": "sql_generator_agent",
+
+            "function": {
+                "description": "Drafts or refines a read-only SQL SELECT statement, expressed using schema aliases only, to answer a described report request.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "request": {
+                            "type": "string",
+                            "description": "The report request to translate into SQL."
+                        },
+                        "schema_view": {
+                            "type": "object",
+                            "description": "The alias view of the modules/tables/columns returned by schema_alias_tool. SQL must be composed using ONLY these aliases."
+                        },
+                        "feedback": {
+                            "type": "string",
+                            "description": "Optional feedback from the validator on a previous SQL draft that must be addressed."
+                        }
+                    },
+                    "required": ["request", "schema_view"]
+                }
+            },
+
+            "instructions": """
+You are a SQL generation specialist.
+You will be given a natural-language report request, an alias schema view
+(database/table/field ALIASES with human-readable explanations of what each
+one means), and, if provided, feedback from a prior validation attempt.
+
+Produce a single, read-only SQL SELECT statement that answers the request,
+using the explanations in the alias schema view to figure out which aliased
+tables and fields are relevant.
+
+Rules:
+- You do NOT know, and must never guess or invent, the real database, table,
+  or column names. Refer to tables and fields using ONLY the "alias" values
+  given to you in schema_view (e.g. use the table alias in the FROM clause
+  and field aliases in SELECT/WHERE/etc., exactly as given).
+- Only ever produce SELECT statements. Never produce INSERT, UPDATE, DELETE,
+  DROP, ALTER, CREATE, ATTACH, or PRAGMA statements.
+- Never include multiple statements separated by semicolons.
+- Prefer explicit field-alias lists over SELECT *.
+- Foreign Key JOINs (mandatory): Every column in schema_view that has a
+  "join_hint" field is a foreign key. When any such FK column belongs to a
+  table you are querying, you MUST follow its join_hint:
+    1. Add the indicated LEFT JOIN clause (replacing "<this_col>" with the
+       fully qualified alias, e.g. employees.dept_id).
+    2. Remove the raw FK ID column from the SELECT list and instead SELECT
+       the display fields listed after "fetch:" in the join_hint.
+    3. For self-referential FKs (e.g. employees.mgr_id references employees),
+       alias the joined table to avoid ambiguity, e.g.:
+         LEFT JOIN employees AS mgr ON employees.mgr_id = mgr.emp_id
+       then SELECT mgr.fname, mgr.lname.
+    4. If the same referenced table must be joined more than once (e.g. both
+       dept_id and a manager FK point to employees), use distinct aliases for
+       each join.
+- If feedback is provided, address every point raised before returning the
+  revised SQL.
+- Return ONLY the alias-based SQL statement as your final answer, with no
+  extra commentary, explanation, or markdown formatting.
+"""
+        },
+
+        # SQL validator agent: acts as "LLM B", independently cross-checking
+        # the SQL for correctness and safety.
+        {
+            "name": "sql_validator_agent",
+            "function": {
+                "description": "Independently reviews an alias-based SQL SELECT statement for correctness and safety, approving it or returning specific feedback.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "sql": {
+                            "type": "string",
+                            "description": "The alias-based SQL SELECT statement to validate."
+                        },
+                        "request": {
+                            "type": "string",
+                            "description": "The original report request the SQL is meant to answer."
+                        },
+                        "schema_view": {
+                            "type": "object",
+                            "description": "The alias view of the modules/tables/columns returned by schema_alias_tool, used to check the SQL only references known aliases."
+                        }
+                    },
+                    "required": ["sql", "request", "schema_view"]
+                }
+            },
+
+            "instructions": """
+You are an independent SQL reviewer (acting as a second, cross-checking model).
+Given an alias-based SQL SELECT statement, the original request it is meant
+to answer, and the alias schema view it should be composed against, verify
+that:
+- It is a single, syntactically valid, read-only SELECT statement.
+- It does not contain INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, ATTACH,
+  PRAGMA, or multiple statements.
+- Every table/field reference in the SQL is one of the "alias" values present
+  in schema_view (i.e. it does NOT reference any real table/column names,
+  which would indicate the generator broke the alias contract).
+- It plausibly answers the original request (correct aliased tables/fields/
+  filters, per their explanations in schema_view).
+- For every FK column (any column whose schema_view entry has a "join_hint")
+  that belongs to a queried table, a corresponding JOIN is present and the
+  display fields from the referenced table (listed after "fetch:" in the
+  join_hint) are selected instead of the raw FK ID, unless the request
+  explicitly asks for ID values only.
+
+If the SQL passes all checks, respond with exactly: "APPROVED: <the SQL>".
+Otherwise, respond with exactly: "REJECTED: <specific, actionable feedback
+explaining what must change>".
+"""
+        },
+
+        # Security and compliance agent: checks access rights and injection risk
+        # before the query is allowed to run.
+        {
+            "name": "security_and_compliance_agent",
+
+            "function": {
+                "description": "Checks a validated, alias-based SQL statement for access-control and SQL-injection risk before execution.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "sql": {
+                            "type": "string",
+                            "description": "The validated, alias-based SQL SELECT statement to check."
+                        }
+                    },
+                    "required": ["sql"]
+                }
+            },
+
+            "instructions": """
+You are a security and compliance reviewer for database report queries.
+Given an alias-based SQL SELECT statement that has already passed generation
+and validation, check specifically for:
+- SQL injection patterns (e.g. stacked queries, comment-based injection,
+  tautologies like "1=1", UNION-based data exfiltration).
+- Access to aliased fields whose explanations suggest sensitive data (e.g.
+  passwords, tokens, social security numbers data) that should not
+  appear in an ad hoc report unless explicitly and clearly requested.
+- Any statement type other than a single read-only SELECT.
+
+If the statement is safe and compliant, respond with exactly: "CLEARED".
+Otherwise, respond with exactly: "BLOCKED: <reason>" describing the specific
+security or compliance concern.
+"""
+        },
+
+        # Down-chain CodedTool: the "Alias mapping (code, not LLM)" + "MCP
+        # server" steps. It performs a deterministic sqlglot rewrite of the
+        # alias-based SQL back to real names, then exposes the SQLite database
+        # as a queryable tool.
+        {
+            "name": "sqlite_query_tool",
+            "function": {
+                "description": "Deterministically rewrites an alias-based SQL SELECT statement back to real table/column names (code, not LLM, via a sqlglot AST pass), then executes it against the SQLite report database and returns the resulting columns and rows.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "sql": {
+                            "type": "string",
+                            "description": "The alias-based, read-only SQL SELECT statement to execute (as produced by sql_generator_agent, using the aliases from schema_alias_tool)."
+                        },
+                        "db_path": {
+                            "type": "string",
+                            "description": "Optional absolute path to the SQLite database file. Omit this parameter to use the built-in default."
+                        },
+                        "schema_path": {
+                            "type": "string",
+                            "description": "Optional absolute path to the schema-alias JSON file used to map aliases back to real names. Omit this parameter to use the built-in default."
+                        },
+                        "row_limit": {
+                            "type": "integer",
+                            "description": "Optional maximum number of rows to return. Defaults to 1000."
+                        }
+                    },
+                    "required": ["sql"]
+                }
+            },
+            "class": "sqlite_query_tool.SqliteQueryTool"
+        },
+
+        # Down-chain CodedTool: the "Xlsx writer step", formatting query
+        # results into a workbook for delivery.
+        {
+            "name": "xlsx_writer_tool",
+            "function": {
+                "description": "Formats tabular query results (columns and rows) into an .xlsx workbook and writes it to disk.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "columns": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Column headers for the report."
+                        },
+                        "rows": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {"type": "string"}
+                            },
+                            "description": "Row data, each row being an array of cell values aligned with the columns."
+                        },
+                        "file_name": {
+                            "type": "string",
+                            "description": "Optional base file name (without extension) for the report. Defaults to a timestamped name."
+                        },
+                        "sheet_name": {
+                            "type": "string",
+                            "description": "Optional worksheet name. Defaults to 'Report'."
+                        }
+                    },
+                    "required": ["columns", "rows"]
+                }
+            },
+            "class": "xlsx_writer_tool.XlsxWriterTool"
+        }
+    ]
+}

@@ -1,0 +1,9 @@
+# Extra dependencies for the BH_report_agent network.
+#
+# openpyxl : used by xlsx_writer_tool to format query results into .xlsx.
+# sqlglot  : powers the deterministic "alias mapping (code, not LLM)" step in
+#            sqlite_query_tool / schema_alias_map (AST-based alias -> real-name
+#            SQL rewrite). If absent, a regex fallback is used automatically.
+openpyxl>=3.1.0
+sqlglot>=25.0.0
+pandas>=2.0.0

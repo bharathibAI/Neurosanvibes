@@ -1,1 +1,1549 @@
-
+{
+    "modules": [
+        {
+            "module_name": "HR Management",
+            "module_alias": "HRM",
+            "description": "Human Resources Management module for employee and department data"
+        },
+        {
+            "module_name": "Project Management",
+            "module_alias": "PJM",
+            "description": "Project Management module for tracking projects, tasks, and assignments"
+        },
+        {
+            "module_name": "Finance",
+            "module_alias": "FIN",
+            "description": "Finance module for salary and financial tracking"
+        }
+    ],
+    "tables": [
+        {
+            "name": "departments",
+            "alias": "departments",
+            "module": "HRM",
+            "row_count": 6,
+            "display_columns": ["dept_name"],
+            "columns": [
+                {
+                    "name": "department_id",
+                    "alias": "dept_id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "department_code",
+                    "alias": "dept_code",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "department_name",
+                    "alias": "dept_name",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "department_description",
+                    "alias": "departmentdescription",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "parent_department_id",
+                    "alias": "parentdepartmentid",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true,
+                    "foreign_key": "departments.department_id"
+                },
+                {
+                    "name": "department_head_id",
+                    "alias": "departmentheadid",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true,
+                    "foreign_key": "employees.employee_id"
+                },
+                {
+                    "name": "cost_center_code",
+                    "alias": "costcentercode",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "budget_amount",
+                    "alias": "budgetamount",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "is_active",
+                    "alias": "isactive",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "created_at",
+                    "alias": "created_ts",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                }
+            ],
+            "sample_data": [
+                {
+                    "department_id": 1,
+                    "department_code": "DEPT001",
+                    "department_name": "Management",
+                    "department_description": "Executive Management",
+                    "cost_center_code": "CC001",
+                    "budget_amount": 2000000.0,
+                    "is_active": 1,
+                    "created_at": "2026-08-08 13:40:52"
+                },
+                {
+                    "department_id": 2,
+                    "department_code": "DEPT002",
+                    "department_name": "IT",
+                    "department_description": "Information Technology",
+                    "parent_department_id": 1,
+                    "cost_center_code": "CC002",
+                    "budget_amount": 1500000.0,
+                    "is_active": 1,
+                    "created_at": "2026-08-08 13:40:52"
+                },
+                {
+                    "department_id": 3,
+                    "department_code": "DEPT003",
+                    "department_name": "HR",
+                    "department_description": "Human Resources",
+                    "parent_department_id": 1,
+                    "cost_center_code": "CC003",
+                    "budget_amount": 500000.0,
+                    "is_active": 1,
+                    "created_at": "2026-08-08 13:40:52"
+                }
+            ]
+        },
+        {
+            "name": "designations",
+            "alias": "designations",
+            "module": "HRM",
+            "row_count": 24,
+            "display_columns": ["title", "designationlevel"],
+            "columns": [
+                {
+                    "name": "designation_id",
+                    "alias": "desig_id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "designation_code",
+                    "alias": "designationcode",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "designation_title",
+                    "alias": "title",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "designation_level",
+                    "alias": "designationlevel",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "min_salary_range",
+                    "alias": "minsalaryrange",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "max_salary_range",
+                    "alias": "maxsalaryrange",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "is_managerial",
+                    "alias": "ismanagerial",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "created_at",
+                    "alias": "created_ts",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                }
+            ],
+            "sample_data": [
+                {
+                    "designation_id": 1,
+                    "designation_code": "DES001",
+                    "designation_title": "CEO",
+                    "designation_level": 5,
+                    "min_salary_range": 150000.0,
+                    "max_salary_range": 200000.0,
+                    "is_managerial": 1,
+                    "created_at": "2026-08-08 13:40:52"
+                },
+                {
+                    "designation_id": 2,
+                    "designation_code": "DES002",
+                    "designation_title": "CTO",
+                    "designation_level": 5,
+                    "min_salary_range": 120000.0,
+                    "max_salary_range": 160000.0,
+                    "is_managerial": 1,
+                    "created_at": "2026-08-08 13:40:52"
+                },
+                {
+                    "designation_id": 3,
+                    "designation_code": "DES003",
+                    "designation_title": "CFO",
+                    "designation_level": 5,
+                    "min_salary_range": 120000.0,
+                    "max_salary_range": 160000.0,
+                    "is_managerial": 1,
+                    "created_at": "2026-08-08 13:40:52"
+                }
+            ]
+        },
+        {
+            "name": "employee_skills",
+            "alias": "employeeskills",
+            "module": "HRM",
+            "row_count": 3,
+            "columns": [
+                {
+                    "name": "employee_skill_id",
+                    "alias": "employeeskillid",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "employee_id",
+                    "alias": "emp_id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false,
+                    "foreign_key": "employees.employee_id"
+                },
+                {
+                    "name": "skill_id",
+                    "alias": "skill_id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false,
+                    "foreign_key": "skills_master.skill_id"
+                },
+                {
+                    "name": "proficiency_level",
+                    "alias": "proficiencylevel",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "years_of_experience",
+                    "alias": "yearsofexperience",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "last_used_date",
+                    "alias": "lastuseddate",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "is_primary_skill",
+                    "alias": "isprimaryskill",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "certification_status",
+                    "alias": "certificationstatus",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                }
+            ],
+            "sample_data": [
+                {
+                    "employee_skill_id": 1,
+                    "employee_id": 1,
+                    "skill_id": 1,
+                    "proficiency_level": "expert",
+                    "years_of_experience": 10.0,
+                    "is_primary_skill": 1,
+                    "certification_status": "certified"
+                },
+                {
+                    "employee_skill_id": 2,
+                    "employee_id": 2,
+                    "skill_id": 2,
+                    "proficiency_level": "advanced",
+                    "years_of_experience": 5.0,
+                    "is_primary_skill": 1,
+                    "certification_status": "certified"
+                },
+                {
+                    "employee_skill_id": 3,
+                    "employee_id": 3,
+                    "skill_id": 3,
+                    "proficiency_level": "intermediate",
+                    "years_of_experience": 3.0,
+                    "is_primary_skill": 1,
+                    "certification_status": "in-progress"
+                }
+            ]
+        },
+        {
+            "name": "employees",
+            "alias": "employees",
+            "module": "HRM",
+            "row_count": 25,
+            "display_columns": ["fname", "lname"],
+            "columns": [
+                {
+                    "name": "employee_id",
+                    "alias": "emp_id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "employee_code",
+                    "alias": "emp_code",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "first_name",
+                    "alias": "fname",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "last_name",
+                    "alias": "lname",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "email_address",
+                    "alias": "email",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "phone_number",
+                    "alias": "phone",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "date_of_birth",
+                    "alias": "dob",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "hire_date",
+                    "alias": "joined_on",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "termination_date",
+                    "alias": "exit_date",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "department_id",
+                    "alias": "dept_id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true,
+                    "foreign_key": "departments.department_id"
+                },
+                {
+                    "name": "designation_id",
+                    "alias": "desig_id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true,
+                    "foreign_key": "designations.designation_id"
+                },
+                {
+                    "name": "manager_id",
+                    "alias": "mgr_id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true,
+                    "foreign_key": "employees.employee_id"
+                },
+                {
+                    "name": "employment_status",
+                    "alias": "emp_status",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "employment_type",
+                    "alias": "emp_type",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "base_salary",
+                    "alias": "salary",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "created_at",
+                    "alias": "created_ts",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "updated_at",
+                    "alias": "updated_ts",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                }
+            ],
+            "sample_data": [
+                {
+                    "employee_id": 1,
+                    "employee_code": "EMP001",
+                    "first_name": "Michael",
+                    "last_name": "Anderson",
+                    "email_address": "michael.anderson@company.com",
+                    "phone_number": "555-0101",
+                    "date_of_birth": "1975-05-15",
+                    "hire_date": "2020-01-15",
+                    "department_id": 1,
+                    "designation_id": 1,
+                    "employment_status": "Active",
+                    "employment_type": "Full-time",
+                    "base_salary": 15000.0,
+                    "created_at": "2026-08-08 13:40:52",
+                    "updated_at": "2026-08-08 13:40:52"
+                },
+                {
+                    "employee_id": 2,
+                    "employee_code": "EMP002",
+                    "first_name": "Sarah",
+                    "last_name": "Johnson",
+                    "email_address": "sarah.johnson@company.com",
+                    "phone_number": "555-0102",
+                    "date_of_birth": "1978-08-22",
+                    "hire_date": "2020-02-01",
+                    "department_id": 1,
+                    "designation_id": 2,
+                    "manager_id": 1,
+                    "employment_status": "Active",
+                    "employment_type": "Full-time",
+                    "base_salary": 12000.0,
+                    "created_at": "2026-08-08 13:40:52",
+                    "updated_at": "2026-08-08 13:40:52"
+                },
+                {
+                    "employee_id": 3,
+                    "employee_code": "EMP003",
+                    "first_name": "David",
+                    "last_name": "Williams",
+                    "email_address": "david.williams@company.com",
+                    "phone_number": "555-0103",
+                    "date_of_birth": "1976-03-10",
+                    "hire_date": "2020-03-10",
+                    "department_id": 1,
+                    "designation_id": 3,
+                    "manager_id": 1,
+                    "employment_status": "Active",
+                    "employment_type": "Full-time",
+                    "base_salary": 12000.0,
+                    "created_at": "2026-08-08 13:40:52",
+                    "updated_at": "2026-08-08 13:40:52"
+                }
+            ]
+        },
+        {
+            "name": "monthly_salary",
+            "alias": "monthlysalary",
+            "module": "FIN",
+            "row_count": 150,
+            "columns": [
+                {
+                    "name": "id",
+                    "alias": "id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "employee_id",
+                    "alias": "emp_id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false,
+                    "foreign_key": "employees.employee_id"
+                },
+                {
+                    "name": "employee_name",
+                    "alias": "employeename",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "department",
+                    "alias": "department",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "month",
+                    "alias": "month",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "year",
+                    "alias": "year",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "base_salary",
+                    "alias": "salary",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "bonus",
+                    "alias": "bonus",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "deductions",
+                    "alias": "deductions",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "net_salary",
+                    "alias": "netsalary",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "payment_date",
+                    "alias": "paymentdate",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "created_at",
+                    "alias": "created_ts",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                }
+            ],
+            "sample_data": [
+                {
+                    "id": 31,
+                    "employee_id": 1,
+                    "employee_name": "Michael Anderson",
+                    "department": "Management",
+                    "month": "January",
+                    "year": 2024,
+                    "base_salary": 15000.0,
+                    "bonus": 461.0,
+                    "deductions": 450.0,
+                    "net_salary": 15011.0,
+                    "payment_date": "2024-01-30",
+                    "created_at": "2026-08-08 13:40:52"
+                },
+                {
+                    "id": 32,
+                    "employee_id": 1,
+                    "employee_name": "Michael Anderson",
+                    "department": "Management",
+                    "month": "February",
+                    "year": 2024,
+                    "base_salary": 15000.0,
+                    "bonus": 929.0,
+                    "deductions": 450.0,
+                    "net_salary": 15479.0,
+                    "payment_date": "2024-02-30",
+                    "created_at": "2026-08-08 13:40:52"
+                },
+                {
+                    "id": 33,
+                    "employee_id": 1,
+                    "employee_name": "Michael Anderson",
+                    "department": "Management",
+                    "month": "March",
+                    "year": 2024,
+                    "base_salary": 15000.0,
+                    "bonus": 492.0,
+                    "deductions": 450.0,
+                    "net_salary": 15042.0,
+                    "payment_date": "2024-03-30",
+                    "created_at": "2026-08-08 13:40:52"
+                }
+            ]
+        },
+        {
+            "name": "project_phases",
+            "alias": "projectphases",
+            "module": "PJM",
+            "row_count": 3,
+            "display_columns": ["phasename"],
+            "columns": [
+                {
+                    "name": "phase_id",
+                    "alias": "phaseid",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true,
+                    "foreign_key": "project_phases.phase_id"
+                },
+                {
+                    "name": "project_id",
+                    "alias": "proj_id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false,
+                    "foreign_key": "projects.project_id"
+                },
+                {
+                    "name": "phase_name",
+                    "alias": "phasename",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "phase_order",
+                    "alias": "phaseorder",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "phase_status",
+                    "alias": "phasestatus",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "start_date",
+                    "alias": "startdate",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "end_date",
+                    "alias": "enddate",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "deliverables",
+                    "alias": "deliverables",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "completion_percentage",
+                    "alias": "completionpercentage",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": true
+                }
+            ],
+            "sample_data": [
+                {
+                    "phase_id": 1,
+                    "project_id": 1,
+                    "phase_name": "Requirements Gathering",
+                    "phase_order": 1,
+                    "phase_status": "completed",
+                    "start_date": "2024-01-15",
+                    "end_date": "2024-02-15",
+                    "completion_percentage": 100.0
+                },
+                {
+                    "phase_id": 2,
+                    "project_id": 1,
+                    "phase_name": "Architecture Design",
+                    "phase_order": 2,
+                    "phase_status": "completed",
+                    "start_date": "2024-02-16",
+                    "end_date": "2024-03-31",
+                    "completion_percentage": 100.0
+                },
+                {
+                    "phase_id": 3,
+                    "project_id": 1,
+                    "phase_name": "Development",
+                    "phase_order": 3,
+                    "phase_status": "in-progress",
+                    "start_date": "2024-04-01",
+                    "completion_percentage": 60.0
+                }
+            ]
+        },
+        {
+            "name": "project_tasks",
+            "alias": "projecttasks",
+            "module": "PJM",
+            "row_count": 3,
+            "display_columns": ["tasktitle", "taskcode"],
+            "columns": [
+                {
+                    "name": "task_id",
+                    "alias": "taskid",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "project_id",
+                    "alias": "proj_id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false,
+                    "foreign_key": "projects.project_id"
+                },
+                {
+                    "name": "phase_id",
+                    "alias": "phaseid",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true,
+                    "foreign_key": "project_phases.phase_id"
+                },
+                {
+                    "name": "parent_task_id",
+                    "alias": "parenttaskid",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true,
+                    "foreign_key": "project_tasks.task_id"
+                },
+                {
+                    "name": "task_code",
+                    "alias": "taskcode",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "task_title",
+                    "alias": "tasktitle",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "task_description",
+                    "alias": "taskdescription",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "task_type",
+                    "alias": "tasktype",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "task_status",
+                    "alias": "taskstatus",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "priority_level",
+                    "alias": "prioritylevel",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "estimated_hours",
+                    "alias": "estimatedhours",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "actual_hours",
+                    "alias": "actualhours",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "start_date",
+                    "alias": "startdate",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "due_date",
+                    "alias": "duedate",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "completed_date",
+                    "alias": "completeddate",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "created_by",
+                    "alias": "createdby",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "created_at",
+                    "alias": "created_ts",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                }
+            ],
+            "sample_data": [
+                {
+                    "task_id": 1,
+                    "project_id": 1,
+                    "phase_id": 3,
+                    "task_code": "TSK-001",
+                    "task_title": "Setup CI/CD Pipeline",
+                    "task_type": "development",
+                    "task_status": "completed",
+                    "priority_level": "high",
+                    "estimated_hours": 40.0,
+                    "actual_hours": 45.0,
+                    "created_by": 1,
+                    "created_at": "2026-08-08 13:18:34"
+                },
+                {
+                    "task_id": 2,
+                    "project_id": 1,
+                    "phase_id": 3,
+                    "task_code": "TSK-002",
+                    "task_title": "Database Migration Scripts",
+                    "task_type": "development",
+                    "task_status": "in-progress",
+                    "priority_level": "high",
+                    "estimated_hours": 60.0,
+                    "actual_hours": 30.0,
+                    "created_by": 2,
+                    "created_at": "2026-08-08 13:18:34"
+                },
+                {
+                    "task_id": 3,
+                    "project_id": 1,
+                    "phase_id": 3,
+                    "task_code": "TSK-003",
+                    "task_title": "API Gateway Configuration",
+                    "task_type": "infrastructure",
+                    "task_status": "pending",
+                    "priority_level": "medium",
+                    "estimated_hours": 24.0,
+                    "created_by": 1,
+                    "created_at": "2026-08-08 13:18:34"
+                }
+            ]
+        },
+        {
+            "name": "project_team_members",
+            "alias": "projectteammembers",
+            "module": "PJM",
+            "row_count": 3,
+            "columns": [
+                {
+                    "name": "team_member_id",
+                    "alias": "teammemberid",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "project_id",
+                    "alias": "proj_id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false,
+                    "foreign_key": "projects.project_id"
+                },
+                {
+                    "name": "employee_id",
+                    "alias": "emp_id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false,
+                    "foreign_key": "employees.employee_id"
+                },
+                {
+                    "name": "team_role",
+                    "alias": "teamrole",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "allocation_percentage",
+                    "alias": "allocationpercentage",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "join_date",
+                    "alias": "joindate",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "leave_date",
+                    "alias": "leavedate",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "is_active",
+                    "alias": "isactive",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "billable_rate",
+                    "alias": "billablerate",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": true
+                }
+            ],
+            "sample_data": [
+                {
+                    "team_member_id": 1,
+                    "project_id": 1,
+                    "employee_id": 1,
+                    "team_role": "Project Manager",
+                    "allocation_percentage": 50.0,
+                    "join_date": "2024-01-15",
+                    "is_active": 1,
+                    "billable_rate": 150.0
+                },
+                {
+                    "team_member_id": 2,
+                    "project_id": 1,
+                    "employee_id": 2,
+                    "team_role": "Tech Lead",
+                    "allocation_percentage": 75.0,
+                    "join_date": "2024-01-20",
+                    "is_active": 1,
+                    "billable_rate": 125.0
+                },
+                {
+                    "team_member_id": 3,
+                    "project_id": 1,
+                    "employee_id": 3,
+                    "team_role": "Developer",
+                    "allocation_percentage": 100.0,
+                    "join_date": "2024-02-01",
+                    "is_active": 1,
+                    "billable_rate": 100.0
+                }
+            ]
+        },
+        {
+            "name": "projects",
+            "alias": "projects",
+            "module": "PJM",
+            "row_count": 3,
+            "display_columns": ["proj_name", "proj_code"],
+            "columns": [
+                {
+                    "name": "project_id",
+                    "alias": "proj_id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "project_code",
+                    "alias": "proj_code",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "project_name",
+                    "alias": "proj_name",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "project_description",
+                    "alias": "projectdescription",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "project_type",
+                    "alias": "projecttype",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "project_status",
+                    "alias": "projectstatus",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "priority_level",
+                    "alias": "prioritylevel",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "start_date",
+                    "alias": "startdate",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "planned_end_date",
+                    "alias": "plannedenddate",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "actual_end_date",
+                    "alias": "actualenddate",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "project_manager_id",
+                    "alias": "projectmanagerid",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false,
+                    "foreign_key": "employees.employee_id"
+                },
+                {
+                    "name": "department_id",
+                    "alias": "dept_id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false,
+                    "foreign_key": "departments.department_id"
+                },
+                {
+                    "name": "client_name",
+                    "alias": "clientname",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "estimated_budget",
+                    "alias": "estimatedbudget",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "actual_cost",
+                    "alias": "actualcost",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "completion_percentage",
+                    "alias": "completionpercentage",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "created_at",
+                    "alias": "created_ts",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "updated_at",
+                    "alias": "updated_ts",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                }
+            ],
+            "sample_data": [
+                {
+                    "project_id": 1,
+                    "project_code": "PRJ-2024-001",
+                    "project_name": "Enterprise Cloud Migration",
+                    "project_type": "Infrastructure",
+                    "project_status": "in-progress",
+                    "priority_level": "high",
+                    "start_date": "2024-01-15",
+                    "planned_end_date": "2024-12-31",
+                    "project_manager_id": 1,
+                    "department_id": 1,
+                    "client_name": "Internal",
+                    "estimated_budget": 500000.0,
+                    "completion_percentage": 65.0,
+                    "created_at": "2026-08-08 13:18:34"
+                },
+                {
+                    "project_id": 2,
+                    "project_code": "PRJ-2024-002",
+                    "project_name": "CRM System Implementation",
+                    "project_type": "Software Development",
+                    "project_status": "in-progress",
+                    "priority_level": "high",
+                    "start_date": "2024-03-01",
+                    "planned_end_date": "2024-09-30",
+                    "project_manager_id": 2,
+                    "department_id": 1,
+                    "client_name": "Sales Division",
+                    "estimated_budget": 350000.0,
+                    "completion_percentage": 40.0,
+                    "created_at": "2026-08-08 13:18:34"
+                },
+                {
+                    "project_id": 3,
+                    "project_code": "PRJ-2024-003",
+                    "project_name": "Data Analytics Platform",
+                    "project_type": "Data Engineering",
+                    "project_status": "planning",
+                    "priority_level": "medium",
+                    "start_date": "2024-06-01",
+                    "planned_end_date": "2025-03-31",
+                    "project_manager_id": 1,
+                    "department_id": 1,
+                    "client_name": "Business Intelligence",
+                    "estimated_budget": 750000.0,
+                    "completion_percentage": 10.0,
+                    "created_at": "2026-08-08 13:18:34"
+                }
+            ]
+        },
+        {
+            "name": "skills_master",
+            "alias": "skillsmaster",
+            "module": "HRM",
+            "row_count": 3,
+            "display_columns": ["skill", "skillcategory"],
+            "columns": [
+                {
+                    "name": "skill_id",
+                    "alias": "skill_id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "skill_name",
+                    "alias": "skill",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "skill_category",
+                    "alias": "skillcategory",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "skill_description",
+                    "alias": "skilldescription",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "is_technical",
+                    "alias": "istechnical",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "demand_level",
+                    "alias": "demandlevel",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                }
+            ],
+            "sample_data": [
+                {
+                    "skill_id": 1,
+                    "skill_name": "Python",
+                    "skill_category": "Programming",
+                    "skill_description": "Python programming language",
+                    "is_technical": 1,
+                    "demand_level": "high"
+                },
+                {
+                    "skill_id": 2,
+                    "skill_name": "Project Management",
+                    "skill_category": "Management",
+                    "skill_description": "Project planning and execution",
+                    "is_technical": 0,
+                    "demand_level": "high"
+                },
+                {
+                    "skill_id": 3,
+                    "skill_name": "AWS",
+                    "skill_category": "Cloud",
+                    "skill_description": "Amazon Web Services",
+                    "is_technical": 1,
+                    "demand_level": "high"
+                }
+            ]
+        },
+        {
+            "name": "task_assignments",
+            "alias": "taskassignments",
+            "module": "PJM",
+            "row_count": 3,
+            "columns": [
+                {
+                    "name": "assignment_id",
+                    "alias": "assignmentid",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true,
+                    "foreign_key": "task_assignments.assignment_id"
+                },
+                {
+                    "name": "task_id",
+                    "alias": "taskid",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false,
+                    "foreign_key": "project_tasks.task_id"
+                },
+                {
+                    "name": "employee_id",
+                    "alias": "emp_id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false,
+                    "foreign_key": "employees.employee_id"
+                },
+                {
+                    "name": "assignment_role",
+                    "alias": "assignmentrole",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "assigned_date",
+                    "alias": "assigneddate",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "start_date",
+                    "alias": "startdate",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "end_date",
+                    "alias": "enddate",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "allocated_hours",
+                    "alias": "allocatedhours",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "hours_logged",
+                    "alias": "hourslogged",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "assignment_status",
+                    "alias": "assignmentstatus",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "assigned_by",
+                    "alias": "assignedby",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false
+                }
+            ],
+            "sample_data": [
+                {
+                    "assignment_id": 1,
+                    "task_id": 1,
+                    "employee_id": 3,
+                    "assignment_role": "developer",
+                    "assigned_date": "2024-04-01",
+                    "allocated_hours": 40.0,
+                    "hours_logged": 45.0,
+                    "assignment_status": "completed",
+                    "assigned_by": 1
+                },
+                {
+                    "assignment_id": 2,
+                    "task_id": 2,
+                    "employee_id": 3,
+                    "assignment_role": "developer",
+                    "assigned_date": "2024-04-15",
+                    "allocated_hours": 60.0,
+                    "hours_logged": 30.0,
+                    "assignment_status": "active",
+                    "assigned_by": 2
+                },
+                {
+                    "assignment_id": 3,
+                    "task_id": 3,
+                    "employee_id": 2,
+                    "assignment_role": "reviewer",
+                    "assigned_date": "2024-05-01",
+                    "allocated_hours": 8.0,
+                    "assignment_status": "pending",
+                    "assigned_by": 1
+                }
+            ]
+        },
+        {
+            "name": "time_entries",
+            "alias": "timeentries",
+            "module": "PJM",
+            "row_count": 3,
+            "columns": [
+                {
+                    "name": "time_entry_id",
+                    "alias": "timeentryid",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "employee_id",
+                    "alias": "emp_id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false,
+                    "foreign_key": "employees.employee_id"
+                },
+                {
+                    "name": "project_id",
+                    "alias": "proj_id",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false,
+                    "foreign_key": "projects.project_id"
+                },
+                {
+                    "name": "task_id",
+                    "alias": "taskid",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true,
+                    "foreign_key": "project_tasks.task_id"
+                },
+                {
+                    "name": "entry_date",
+                    "alias": "entrydate",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "hours_worked",
+                    "alias": "hoursworked",
+                    "type": "REAL",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "work_description",
+                    "alias": "workdescription",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "is_billable",
+                    "alias": "isbillable",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "approval_status",
+                    "alias": "approvalstatus",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                },
+                {
+                    "name": "approved_by",
+                    "alias": "approvedby",
+                    "type": "INTEGER",
+                    "primary_key": false,
+                    "nullable": true
+                },
+                {
+                    "name": "created_at",
+                    "alias": "created_ts",
+                    "type": "TEXT",
+                    "primary_key": false,
+                    "nullable": false
+                }
+            ],
+            "sample_data": [
+                {
+                    "time_entry_id": 1,
+                    "employee_id": 3,
+                    "project_id": 1,
+                    "task_id": 1,
+                    "entry_date": "2024-04-01",
+                    "hours_worked": 8.0,
+                    "work_description": "Initial CI/CD setup and configuration",
+                    "is_billable": 1,
+                    "approval_status": "approved",
+                    "approved_by": 2,
+                    "created_at": "2026-08-08 13:18:34"
+                },
+                {
+                    "time_entry_id": 2,
+                    "employee_id": 3,
+                    "project_id": 1,
+                    "task_id": 1,
+                    "entry_date": "2024-04-02",
+                    "hours_worked": 7.5,
+                    "work_description": "Pipeline testing and debugging",
+                    "is_billable": 1,
+                    "approval_status": "approved",
+                    "approved_by": 2,
+                    "created_at": "2026-08-08 13:18:34"
+                },
+                {
+                    "time_entry_id": 3,
+                    "employee_id": 2,
+                    "project_id": 1,
+                    "task_id": 2,
+                    "entry_date": "2024-04-15",
+                    "hours_worked": 6.0,
+                    "work_description": "Database schema analysis",
+                    "is_billable": 1,
+                    "approval_status": "pending",
+                    "created_at": "2026-08-08 13:18:34"
+                }
+            ]
+        }
+    ]
+}
